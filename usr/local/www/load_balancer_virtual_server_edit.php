@@ -41,6 +41,11 @@ else
 	$id = $_GET['id'];
 
 if (isset($id) && $a_vs[$id]) {
+	if ($a_vs[$id]['interface'] != "" ) {
+		$pconfig['interface'] = $a_vs[$id]['interface'];
+	} else {
+		$pconfig['interface'] = 'any';
+	}
 	$pconfig['ipaddr'] = $a_vs[$id]['ipaddr'];
 	$pconfig['port'] = $a_vs[$id]['port'];
 	$pconfig['pool'] = $a_vs[$id]['pool'];
@@ -69,7 +74,7 @@ if ($_POST) {
 	if (!is_port($_POST['port']))
 		$input_errors[] = "The port must be an integer between 1 and 65535.";
 
-	if(!is_ipaddr($_POST['ipaddr']))
+	if($_POST['ipaddr'] != 'any' and !is_ipaddr($_POST['ipaddr']))
 		$input_errors[] = "{$_POST['ipaddr']} is not a valid IP address.";
 
         if(!isset($_POST['sitedown']) || $_POST['sitedown'] == "")
@@ -93,6 +98,7 @@ if ($_POST) {
 		update_if_changed("port", $vsent['port'], $_POST['port']);
 		update_if_changed("sitedown", $vsent['sitedown'], $_POST['sitedown']);
 		update_if_changed("ipaddr", $vsent['ipaddr'], $_POST['ipaddr']);
+		update_if_changed("interface", $vsent['interface'], $_POST['interface']);
 
 		if (isset($id) && $a_vs[$id])
 			$a_vs[$id] = $vsent;
@@ -138,10 +144,25 @@ include("head.inc");
                   </td>
 		</tr>
                 <tr align="left">
+						                <tr align="left">
+								  <td width="22%" valign="top" class="vncellreq">Interface</td>
+						                  <td width="78%" class="vtable" colspan="2">
+																			<select name="interface" class="formfld">
+															<?php
+																				$interfaces = array('any' => 'ANY', 'wan' => 'WAN', 'lan' => 'LAN');
+																				for ($i = 1; isset($config['interfaces']['opt' . $i]); $i++) {
+																					$interfaces['opt' . $i] = $config['interfaces']['opt' . $i]['descr'];
+																				}
+																				foreach ($interfaces as $iface => $ifacename): ?>
+																					<option value="<?=$iface;?>" <?php if ($iface == $pconfig['interface']) echo "selected"; ?>><?=htmlspecialchars($ifacename);?></option>
+															<?php 				endforeach; ?>
+																			</select>
+						                  </td>
+								</tr>
 		  <td width="22%" valign="top" class="vncellreq">IP Address</td>
                   <td width="78%" class="vtable" colspan="2">
                     <input name="ipaddr" type="text" <?if(isset($pconfig['ipaddr'])) echo "value=\"{$pconfig['ipaddr']}\"";?> size="16" maxlength="16">
-		    <br><b>NOTE:</b> This is normally the WAN IP address that you would like the server to listen on.  All connections to this IP/PORT will be forwarded to the pool cluster.
+		    <br><b>NOTE:</b> This is normally the WAN IP address that you would like the server to listen on.  Use 'any' to match all addresses.
                   </td>
 		</tr>
                 <tr align="left">
