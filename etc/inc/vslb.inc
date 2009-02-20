@@ -57,7 +57,14 @@ function slbd_configure() {
 			/* remove pool status files so we don't end up with a mismatch */
 			if(file_exists("{$g['tmp_path']}/{$vsent['name']}.pool"))
 				unlink("{$g['tmp_path']}/{$vsent['name']}.pool");
+			/* Interface */
+			if (($vsent['interface']) != "" and ($vsent['interface'] != 'any')) {
+				$iface = convert_friendly_interface_to_real_interface_name($vsent['interface']);
+				$slbdconf .= "\t:ifname={$iface}:\\\n";
+			}
 			/* virtual IP */
+			if ($vsent['ipaddr'] == 'any')
+				$vsent['ipaddr'] = '0.0.0.0';
 			$slbdconf .= "\t:vip={$vsent['ipaddr']}:\\\n";
 			/* virtual port */
 			$slbdconf .= "\t:vip-port={$vsent['port']}:\\\n";
